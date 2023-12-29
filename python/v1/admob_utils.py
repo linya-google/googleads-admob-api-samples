@@ -24,7 +24,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
 # [START main_body]
-PORT = 8080  # lsof -i:8080
+PORT = 8080
 REDIRECT_URI = f"http://127.0.0.1:{PORT}"
 
 # This variable specifies the name of a file that contains the OAuth 2.0
