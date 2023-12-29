@@ -24,18 +24,12 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 
 # [START main_body]
-PORT = 8080
+PORT = 8080  # lsof -i:8080
 REDIRECT_URI = f"http://127.0.0.1:{PORT}"
 
 # This variable specifies the name of a file that contains the OAuth 2.0
 # information for this application, including its client_id and client_secret.
 CLIENT_SECRETS_FILE = "client_secrets.json"
-
-# This OAuth 2.0 access scope allows for full read/write access to the
-# authenticated user's account and requires requests to use an SSL connection.
-API_NAME = "admob"
-API_VERSION = "v1"
-API_SCOPE = "https://www.googleapis.com/auth/admob.readonly"
 
 # Store refresh tokens in a local disk file. This file contains sensitive
 # authorization information.
@@ -50,12 +44,20 @@ def load_user_credentials():
   return client_secrets
 
 
-# Authenticate user and create AdMob Service Object.
-def authenticate():
-  """Authenticates a user and creates an AdMob Service Object.
+# Authenticate user and create API Service Object.
+def authenticate(
+  api_name='admob', 
+  api_version='v1', 
+  api_scopes=['https://www.googleapis.com/auth/admob.readonly']):
+  """Authenticates a user and creates an API Service Object.
+
+  Args:
+    api_name: Google API name as shown in the API discovery doc.
+    api_version: Google API version as shown in the API discovery doc.
+    api_scopes: scope(s) to authenticate with oauth2 flow to access the APIs.
 
   Returns:
-    An AdMob Service Object that is authenticated with the user using either
+    An API Service Object that is authenticated with the user using either
     a client_secrets file or previously stored access and refresh tokens.
   """
 
@@ -73,7 +75,7 @@ def authenticate():
   # client_secrets file.
   else:
     client_secrets = load_user_credentials()
-    flow = Flow.from_client_secrets_file(client_secrets, scopes=[API_SCOPE])
+    flow = Flow.from_client_secrets_file(client_secrets, scopes=api_scopes)
 
     flow.redirect_uri = REDIRECT_URI
 
@@ -107,12 +109,12 @@ def authenticate():
     print(f"\nYour refresh token is: {refresh_token}\n")
 
     # Save the credentials for the next run.
-    with open("token.pickle", "wb") as token:
+    with open(TOKEN_FILE, "wb") as token:
       pickle.dump(credentials, token)
 
-  # Build the AdMob service.
-  admob = build(API_NAME, API_VERSION, credentials=credentials)
-  return admob
+  # Build the API service stub.
+  service = build(api_name, api_version, credentials=credentials)
+  return service
 
 
 def _get_authorization_code(passthrough_val):
